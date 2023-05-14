@@ -28,3 +28,5 @@ npx prisma generate
 npx prisma db push
 ts-node seed/init.ts
 ```
+
+Now modify the actual express code to add the routes. Guide: https://www.prisma.io/express
