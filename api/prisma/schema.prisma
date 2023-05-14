@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model UserAccount {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  username     String        @unique
+  name         String
+  bookmarks    Bookmark[]
+  curatedLists CuratedList[]
+  upvotes      Upvote[]
+}
+
+model Tag {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  name        String     @unique
+  bookmarkIDs String[]   @db.ObjectId
+  bookmarks   Bookmark[] @relation(fields: [bookmarkIDs], references: [id])
+}
+
+model URL {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  url       String     @unique
+  bookmarks Bookmark[]
+}
+
+model Bookmark {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  description    String
+  userId         String        @db.ObjectId
+  urlId          String        @db.ObjectId
+  user           UserAccount   @relation(fields: [userId], references: [id])
+  url            URL           @relation(fields: [urlId], references: [id])
+  tagIDs         String[]      @db.ObjectId
+  tags           Tag[]         @relation(fields: [tagIDs], references: [id])
+  curatedListIDs String[]      @db.ObjectId
+  curatedLists   CuratedList[] @relation(fields: [curatedListIDs], references: [id])
+
+  @@unique([userId, urlId])
+}
+
+model CuratedList {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  userId      String      @db.ObjectId
+  user        UserAccount @relation(fields: [userId], references: [id])
+  bookmarkIDs String[]    @db.ObjectId
+  bookmarks   Bookmark[]  @relation(fields: [bookmarkIDs], references: [id])
+  upvotes     Upvote[]
+
+  @@unique([name, userId])
+}
+
+model Upvote {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String      @db.ObjectId
+  curatedListId String      @db.ObjectId
+  user          UserAccount @relation(fields: [userId], references: [id])
+  curatedList   CuratedList @relation(fields: [curatedListId], references: [id])
+
+  @@unique([userId, curatedListId])
+}
